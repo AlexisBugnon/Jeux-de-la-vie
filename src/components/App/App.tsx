@@ -1,26 +1,24 @@
+import { useState } from 'react';
 import logo from '../../assets/logo.svg';
+import Grid from '../Grid/Grid';
 
 import './App.scss';
 
 function App() {
+  const defaultGrid = {
+    numberLine: 20,
+    numberColumn: 20,
+    sizeCells: 2,
+    cells: null,
+  };
+
+  // const [numberLineGrid, setNumberLineGrid] = useState(10);
+  // const [numberColumnGrid, setNumberColumnGrid] = useState(10);
+  const [gridState, setGridState] = useState(defaultGrid);
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-
-        <p>
-          Edit <code>src/components/App/App.tsx</code> and save to reload.
-        </p>
-
-        <a
-          className="App-link"
-          href="https://react.dev/"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <Grid gridState={gridState} />
     </div>
   );
 }

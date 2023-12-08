@@ -3,7 +3,21 @@
   display: grid;
   width: fit-content;
   margin: 0 auto;
-  border: 1px solid blue;
-  // grid-template-columns: repeat(20, 2rem);
-  // grid-template-rows: repeat(20, 2rem);
+  border: 1px solid rgb(0, 0, 0);
+  gap: 1px;
+
+  .cell{
+    background-color: white;
+    cursor: pointer;
+    &:hover{
+      background-color: rgb(163, 180, 206);
+    }
+  }
+
+  .cell--alive{
+    background-color: rgb(163, 180, 206);
+  }
 }
+
+
+

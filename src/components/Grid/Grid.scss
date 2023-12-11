@@ -1,23 +1,29 @@
-.grid{
-  background-color: gray;
-  display: grid;
-  width: fit-content;
-  margin: 0 auto;
-  border: 1px solid rgb(0, 0, 0);
-  gap: 1px;
+.container{
+  width: 80%;
 
-  .cell{
-    background-color: white;
-    cursor: pointer;
-    &:hover{
+  .grid{
+    background-color: gray;
+    display: grid;
+    border: 1px solid rgb(0, 0, 0);
+    gap: 1px;
+    width: fit-content;
+    margin: 0.5rem auto;
+  
+    .cell{
+      background-color: white;
+      cursor: pointer;
+      &:hover{
+        background-color: rgb(163, 180, 206);
+      }
+    }
+  
+    .cell--alive{
       background-color: rgb(163, 180, 206);
     }
   }
-
-  .cell--alive{
-    background-color: rgb(163, 180, 206);
-  }
 }
+
+
 
 
 

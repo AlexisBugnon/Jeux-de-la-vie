@@ -1,3 +1,5 @@
+import { useEffect, useState } from 'react';
+import ICell from '../../@types/cell';
 import IGrid from '../../@types/grid';
 import './Grid.scss';
 
@@ -8,7 +10,10 @@ function Grid({
   gridState: IGrid;
   setGridState: React.Dispatch<React.SetStateAction<IGrid>>;
 }) {
-  const cellsCompo = [];
+  const cellsCompo: React.DetailedHTMLProps<
+    React.HTMLAttributes<HTMLDivElement>,
+    HTMLDivElement
+  >[] = [];
   const createCell = () => {
     gridState.cells.forEach((cell, index) => {
       cellsCompo.push(
@@ -20,6 +25,7 @@ function Grid({
           onMouseDown={() => {
             const newGridState = { ...gridState };
             newGridState.cells[cell.i].alive = true;
+            newGridState.cellsAlive[cell.i] = cell;
             setGridState(newGridState);
           }}
         />
@@ -28,14 +34,27 @@ function Grid({
     return cellsCompo;
   };
 
+  // const getNearestNeighbor = () => {
+  //   const oldGridState = { ...gridState };
+  //   gridState.cellsAlive.forEach(() => {
+
+  //   });
+  // };
+
+  // useEffect(() => {
+  //   getNearestNeighbor();
+  // }, [gridState]);
+
   const gridStyle = {
-    gridTemplateColumns: `repeat(${gridState.numberColumn}, ${gridState.sizeCells}rem)`,
-    gridTemplateRows: `repeat(${gridState.numberColumn}, ${gridState.sizeCells}rem)`,
+    gridTemplateColumns: `repeat(${gridState.numberColumn}, ${gridState.sizeCells}px)`,
+    gridTemplateRows: `repeat(${gridState.numberColumn}, ${gridState.sizeCells}px)`,
   };
 
   return (
-    <div className="grid" style={gridStyle}>
-      {createCell()}
+    <div className="container">
+      <div className="grid" style={gridStyle}>
+        {createCell()}
+      </div>
     </div>
   );
 }

@@ -5,6 +5,7 @@ interface IGrid {
   numberColumn: number;
   sizeCells: number;
   cells: ICell[];
+  cellsAlive: ICell[];
 }
 
 export default IGrid;

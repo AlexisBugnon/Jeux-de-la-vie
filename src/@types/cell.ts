@@ -1,8 +1,7 @@
 interface ICell {
   i: number;
-  x: number;
-  y: number;
   alive: boolean;
+  neighbors: number;
 }
 
 export default ICell;

@@ -1,3 +1,4 @@
+/* eslint-disable no-lonely-if */
 import { useEffect, useState } from 'react';
 import logo from '../../assets/logo.svg';
 import Grid from '../Grid/Grid';
@@ -9,9 +10,9 @@ import ICell from '../../@types/cell';
 
 function App() {
   const defaultGrid = {
-    numberLine: 100,
-    numberColumn: 100,
-    sizeCells: 10,
+    numberLine: 50,
+    numberColumn: 50,
+    sizeCells: 15,
     cells: [],
     cellsAlive: [],
   };
@@ -32,6 +33,7 @@ function App() {
 
   const updateGridState = () => {
     const cellsWithNeightbors: ICell[] = [];
+    // Indices des voisins pour chaque cellule
     const indexNeighbors = [
       +1,
       -1,
@@ -42,42 +44,77 @@ function App() {
       +defaultGrid.numberColumn - 1,
       -defaultGrid.numberColumn + 1,
     ];
-    gridState.cellsAlive.forEach((cell: ICell) => {
-      indexNeighbors.forEach((index) => {
-        if (cellsWithNeightbors[cell.i + index]) {
-          cellsWithNeightbors[cell.i + index].neighbors += 1;
-        } else {
-          cellsWithNeightbors[cell.i + index] = {
-            i: cell.i + index,
+
+    // Tableaux pour stocker les indices des cellules à mourir et à faire vivre
+    const cellsTodie: number[] = [];
+    const cellsToLive: number[] = [];
+
+    // Copie de l'état actuel de la grille
+    const newGridState = { ...gridState };
+
+    // Itération sur les cellules vivantes de la grille actuelle
+    gridState.cellsAlive.forEach((cellAlive: ICell) => {
+      // Vérification et ajout des cellules avec voisins
+      if (!cellsWithNeightbors[cellAlive.i]) {
+        cellsWithNeightbors[cellAlive.i] = { ...cellAlive, neighbors: 0 };
+      }
+      // Itération sur les indices des voisins
+      indexNeighbors.forEach((relativeIndex) => {
+        // Vérification et ajout des cellules voisines
+        if (!cellsWithNeightbors[cellAlive.i + relativeIndex]) {
+          cellsWithNeightbors[cellAlive.i + relativeIndex] = {
+            i: cellAlive.i + relativeIndex,
             alive: false,
-            neighbors: 1,
+            neighbors: 0,
           };
         }
+        // Vérification de l'état de la cellule voisine
+        if (gridState.cellsAlive[cellAlive.i + relativeIndex]) {
+          // Incrémentation du nombre de voisins pour les cellules vivantes
+          cellsWithNeightbors[cellAlive.i].neighbors += 1;
+        } else {
+          // Incrémentation du nombre de voisins pour les cellules mortes
+          cellsWithNeightbors[cellAlive.i + relativeIndex].neighbors += 1;
+          // Vérification si la cellule doit prendre vie
+          if (
+            cellsWithNeightbors[cellAlive.i + relativeIndex].neighbors === 3
+          ) {
+            cellsToLive[cellAlive.i + relativeIndex] =
+              cellAlive.i + relativeIndex;
+          } else if (
+            cellsWithNeightbors[cellAlive.i + relativeIndex].neighbors > 3
+          ) {
+            delete cellsToLive[cellAlive.i + relativeIndex];
+          }
+        }
       });
-    });
-
-    const newGridState = { ...gridState };
-    cellsWithNeightbors.forEach((cell) => {
-      if (cell.neighbors === 3) {
-        newGridState.cells[cell.i].alive = true;
-        newGridState.cellsAlive[cell.i] = {
-          i: cell.i,
-          alive: true,
-          neighbors: 0,
-        };
-      } else if (cell.neighbors <= 1 || cell.neighbors > 3) {
-        console.log('dans le die');
-        newGridState.cells[cell.i].alive = false;
-        delete newGridState.cellsAlive[cell.i];
+      // Vérification si la cellule doit mourir
+      if (
+        cellsWithNeightbors[cellAlive.i].neighbors <= 1 ||
+        cellsWithNeightbors[cellAlive.i].neighbors > 3
+      ) {
+        cellsTodie.push(cellAlive.i);
       }
     });
 
-    newGridState.cellsAlive.forEach((cell) => {
-      if (!cellsWithNeightbors[cell.i]) {
-        newGridState.cells[cell.i].alive = false;
-        delete newGridState.cellsAlive[cell.i];
-      }
+    // Itération sur les cellules à mourir
+    cellsTodie.forEach((indexCell) => {
+      // Mise à jour de l'état de la cellule dans la nouvelle grille
+      newGridState.cells[indexCell].alive = false;
+      delete newGridState.cellsAlive[indexCell];
     });
+
+    // Itération sur les cellules à faire vivre
+    cellsToLive.forEach((indexCell) => {
+      // Mise à jour de l'état de la cellule dans la nouvelle grille
+      newGridState.cells[indexCell].alive = true;
+      newGridState.cellsAlive[indexCell] = {
+        i: indexCell,
+        alive: true,
+        neighbors: 0,
+      };
+    });
+
     setGridState(newGridState);
   };
 

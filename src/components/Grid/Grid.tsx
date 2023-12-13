@@ -1,3 +1,4 @@
+/* eslint-disable react/no-array-index-key */
 import { useEffect, useState } from 'react';
 import ICell from '../../@types/cell';
 import IGrid from '../../@types/grid';
@@ -10,13 +11,9 @@ function Grid({
   gridState: IGrid;
   setGridState: React.Dispatch<React.SetStateAction<IGrid>>;
 }) {
-  const cellsCompo: React.DetailedHTMLProps<
-    React.HTMLAttributes<HTMLDivElement>,
-    HTMLDivElement
-  >[] = [];
   const createCell = () => {
-    gridState.cells.forEach((cell, index) => {
-      cellsCompo.push(
+    const cellsCompo = gridState.cells.map((cell, index) => {
+      return (
         // eslint-disable-next-line jsx-a11y/control-has-associated-label, jsx-a11y/interactive-supports-focus
         <div
           className={cell.alive ? 'cell cell--alive' : 'cell'}
@@ -31,19 +28,9 @@ function Grid({
         />
       );
     });
+
     return cellsCompo;
   };
-
-  // const getNearestNeighbor = () => {
-  //   const oldGridState = { ...gridState };
-  //   gridState.cellsAlive.forEach(() => {
-
-  //   });
-  // };
-
-  // useEffect(() => {
-  //   getNearestNeighbor();
-  // }, [gridState]);
 
   const gridStyle = {
     gridTemplateColumns: `repeat(${gridState.numberColumn}, ${gridState.sizeCells}px)`,

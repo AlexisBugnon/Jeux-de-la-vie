@@ -1,46 +1,36 @@
+/* eslint-disable jsx-a11y/interactive-supports-focus */
+/* eslint-disable jsx-a11y/control-has-associated-label */
 /* eslint-disable react/no-array-index-key */
-import { useEffect, useState } from 'react';
+import { CSSProperties, useEffect, useState } from 'react';
 import ICell from '../../@types/cell';
 import IGrid from '../../@types/grid';
 import './Grid.scss';
 
 function Grid({
-  gridState,
-  setGridState,
+  divToDisplay,
+  gridStyle,
+  cellsAlive,
 }: {
-  gridState: IGrid;
-  setGridState: React.Dispatch<React.SetStateAction<IGrid>>;
+  divToDisplay: JSX.Element[] | undefined;
+  gridStyle: CSSProperties | undefined;
+  cellsAlive: ICell[];
 }) {
-  const createCell = () => {
-    const cellsCompo = gridState.cells.map((cell, index) => {
-      return (
-        // eslint-disable-next-line jsx-a11y/control-has-associated-label, jsx-a11y/interactive-supports-focus
-        <div
-          className={cell.alive ? 'cell cell--alive' : 'cell'}
-          key={index}
-          role="button"
-          onMouseDown={() => {
-            const newGridState = { ...gridState };
-            newGridState.cells[cell.i].alive = true;
-            newGridState.cellsAlive[cell.i] = cell;
-            setGridState(newGridState);
-          }}
-        />
-      );
+  let divDefault: JSX.Element[] = [];
+  if (divToDisplay) {
+    divDefault = divToDisplay.slice();
+    cellsAlive.forEach((cell: ICell, index: number) => {
+      if (index < divDefault.length) {
+        divDefault[index] = (
+          <div className="cell cell--alive" key={index} role="button" />
+        );
+      }
     });
-
-    return cellsCompo;
-  };
-
-  const gridStyle = {
-    gridTemplateColumns: `repeat(${gridState.numberColumn}, ${gridState.sizeCells}px)`,
-    gridTemplateRows: `repeat(${gridState.numberColumn}, ${gridState.sizeCells}px)`,
-  };
+  }
 
   return (
     <div className="container">
       <div className="grid" style={gridStyle}>
-        {createCell()}
+        {divDefault}
       </div>
     </div>
   );

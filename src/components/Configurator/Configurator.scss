@@ -2,11 +2,47 @@
   border-right: 1px solid black;
   width: 20%;
 
-  button{
-    display: block;
+  .container{
+    margin: 1rem auto;
     width: 80%;
-    margin: 0 auto;
-    cursor: pointer;
-    margin-top: 1rem;
+
+    .cycle{
+
+      width: 100%;
+      display: block;
+      cursor: pointer;
+      border-radius: 5rem;
+      border: 0;
+      color: white;
+      padding: 0.5rem;
+      font-weight: bold;
+
+      &--playing{
+        background-color: rgb(177, 9, 9);
+      }
+
+      &--stoped{
+        background-color: green;
+      }
+    }
+
+    .container-range-iteration{
+      margin-top: 2rem;
+      text-align: center;
+
+      .range-iteration{
+        cursor: pointer;
+        width: 100%;
+      }
+
+      p{
+        font-size: 0.9rem;
+      }
+
+    }
+    
+
   }
+
+  
 }

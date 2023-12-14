@@ -1,6 +1,9 @@
-/* eslint-disable no-lonely-if */
-import { useEffect, useState } from 'react';
-import logo from '../../assets/logo.svg';
+/* eslint-disable jsx-a11y/click-events-have-key-events */
+/* eslint-disable jsx-a11y/mouse-events-have-key-events */
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable jsx-a11y/control-has-associated-label */
+/* eslint-disable jsx-a11y/interactive-supports-focus */
+import { CSSProperties, useEffect, useRef, useState } from 'react';
 import Grid from '../Grid/Grid';
 
 import './App.scss';
@@ -19,15 +22,61 @@ function App() {
 
   const [gridState, setGridState] = useState<IGrid>(defaultGrid);
   const [play, setPlay] = useState(false);
+  const [cycleSpeed, setCycleSpeed] = useState(1000);
+  const divToDisplay = useRef<JSX.Element[]>();
+  const gridStyle = useRef<CSSProperties>();
+  const mouseDown = useRef(false);
+
+  useEffect(() => {
+    const handleDown = () => {
+      mouseDown.current = true;
+    };
+    const handleUp = () => {
+      mouseDown.current = false;
+    };
+    window.addEventListener('mousedown', handleDown);
+    window.addEventListener('mouseup', handleUp);
+    return () => {
+      window.removeEventListener('mousedown', handleDown);
+      window.removeEventListener('mouseup', handleUp);
+    };
+  });
+
+  const userAddCellAlive = (index: number, rifleMode = false) => {
+    if (!rifleMode || (rifleMode && mouseDown.current)) {
+      const newGridState = { ...gridState };
+      newGridState.cellsAlive[index] = newGridState.cells[index];
+      setGridState(newGridState);
+    }
+  };
 
   const createCellsArray = () => {
-    const cellsArray: ICell[] = [];
+    divToDisplay.current = [];
+    const updatedGrid: IGrid = { ...defaultGrid };
     const numberOfCells = gridState.numberLine * gridState.numberColumn;
     for (let index = 0; index < numberOfCells; index += 1) {
-      cellsArray[index] = { i: index, alive: false, neighbors: 0 };
+      updatedGrid.cells.push({ i: index, alive: false, neighbors: 0 });
+
+      divToDisplay.current.push(
+        <div
+          className="cell"
+          key={index}
+          role="button"
+          onClick={() => {
+            userAddCellAlive(index);
+          }}
+          onMouseOver={() => {
+            userAddCellAlive(index, true);
+          }}
+        />
+      );
     }
-    const updatedGrid: IGrid = { ...defaultGrid };
-    updatedGrid.cells = cellsArray;
+
+    gridStyle.current = {
+      gridTemplateColumns: `repeat(${gridState.numberColumn}, ${gridState.sizeCells}px)`,
+      gridTemplateRows: `repeat(${gridState.numberColumn}, ${gridState.sizeCells}px)`,
+    };
+
     setGridState(updatedGrid);
   };
 
@@ -100,14 +149,12 @@ function App() {
     // Itération sur les cellules à mourir
     cellsTodie.forEach((indexCell) => {
       // Mise à jour de l'état de la cellule dans la nouvelle grille
-      newGridState.cells[indexCell].alive = false;
       delete newGridState.cellsAlive[indexCell];
     });
 
     // Itération sur les cellules à faire vivre
     cellsToLive.forEach((indexCell) => {
       // Mise à jour de l'état de la cellule dans la nouvelle grille
-      newGridState.cells[indexCell].alive = true;
       newGridState.cellsAlive[indexCell] = {
         i: indexCell,
         alive: true,
@@ -120,23 +167,33 @@ function App() {
 
   useEffect(() => {
     createCellsArray();
-  },[]);
+  }, []);
 
   useEffect(() => {
+    let test: number | undefined;
     if (play) {
-      const test = setInterval(() => {
+      test = setInterval(() => {
         updateGridState();
-      }, 250);
-      return () => {
-        clearInterval(test);
-      };
+      }, cycleSpeed);
     }
-  }, [play]);
+    return () => {
+      clearInterval(test);
+    };
+  }, [play, cycleSpeed]);
 
   return (
     <div className="App">
-      <Configurator play={play} setPlay={setPlay} />
-      <Grid gridState={gridState} setGridState={setGridState} />
+      <Configurator
+        play={play}
+        setPlay={setPlay}
+        cycleSpeed={cycleSpeed}
+        setCycleSpeed={setCycleSpeed}
+      />
+      <Grid
+        divToDisplay={divToDisplay.current}
+        gridStyle={gridStyle.current}
+        cellsAlive={gridState.cellsAlive}
+      />
     </div>
   );
 }

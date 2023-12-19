@@ -9,7 +9,6 @@
     .cycle{
 
       width: 100%;
-      display: block;
       cursor: pointer;
       border-radius: 5rem;
       border: 0;
@@ -39,6 +38,12 @@
         font-size: 0.9rem;
       }
 
+    }
+
+    .reset-grid{
+      margin-top: 2rem;
+      width: 100%;
+      cursor: pointer;
     }
     
 

@@ -10,64 +10,35 @@ import './App.scss';
 import IGrid from '../../@types/grid';
 import Configurator from '../Configurator/Configurator';
 import ICell from '../../@types/cell';
+import DefaultCell from '../DefaultCell/DefaultCell';
 
 function App() {
   const defaultGrid = {
-    numberLine: 50,
-    numberColumn: 50,
+    numberLine: 20,
+    numberColumn: 20,
     sizeCells: 15,
-    cells: [],
-    cellsAlive: [],
   };
 
+  const [aliveCells, setAliveCells] = useState<ICell>({ cells: [] });
   const [gridState, setGridState] = useState<IGrid>(defaultGrid);
   const [play, setPlay] = useState(false);
   const [cycleSpeed, setCycleSpeed] = useState(1000);
   const divToDisplay = useRef<JSX.Element[]>();
   const gridStyle = useRef<CSSProperties>();
-  const mouseDown = useRef(false);
 
-  useEffect(() => {
-    const handleDown = () => {
-      mouseDown.current = true;
-    };
-    const handleUp = () => {
-      mouseDown.current = false;
-    };
-    window.addEventListener('mousedown', handleDown);
-    window.addEventListener('mouseup', handleUp);
-    return () => {
-      window.removeEventListener('mousedown', handleDown);
-      window.removeEventListener('mouseup', handleUp);
-    };
-  });
-
-  const userAddCellAlive = (index: number, rifleMode = false) => {
-    if (!rifleMode || (rifleMode && mouseDown.current)) {
-      const newGridState = { ...gridState };
-      newGridState.cellsAlive[index] = newGridState.cells[index];
-      setGridState(newGridState);
-    }
-  };
-
+  /*
+   ** Cette fonction permet de créer la grille vierge au lancement de l'app
+   */
   const createCellsArray = () => {
     divToDisplay.current = [];
-    const updatedGrid: IGrid = { ...defaultGrid };
     const numberOfCells = gridState.numberLine * gridState.numberColumn;
     for (let index = 0; index < numberOfCells; index += 1) {
-      updatedGrid.cells.push({ i: index, alive: false, neighbors: 0 });
-
       divToDisplay.current.push(
-        <div
-          className="cell"
-          key={index}
-          role="button"
-          onClick={() => {
-            userAddCellAlive(index);
-          }}
-          onMouseOver={() => {
-            userAddCellAlive(index, true);
-          }}
+        <DefaultCell
+          // key={index}
+          index={index}
+          aliveCells={aliveCells}
+          setAliveCells={setAliveCells}
         />
       );
     }
@@ -77,21 +48,21 @@ function App() {
       gridTemplateRows: `repeat(${gridState.numberColumn}, ${gridState.sizeCells}px)`,
     };
 
-    setGridState(updatedGrid);
+    setAliveCells({ cells: [] });
   };
 
   const updateGridState = () => {
-    const cellsWithNeightbors: ICell[] = [];
+    const cellsWithNeightbors: number[] = [];
     // Indices des voisins pour chaque cellule
     const indexNeighbors = [
       +1,
       -1,
-      +defaultGrid.numberColumn,
-      -defaultGrid.numberColumn,
-      +defaultGrid.numberColumn + 1,
-      -defaultGrid.numberColumn - 1,
-      +defaultGrid.numberColumn - 1,
-      -defaultGrid.numberColumn + 1,
+      +gridState.numberColumn,
+      -gridState.numberColumn,
+      +gridState.numberColumn + 1,
+      -gridState.numberColumn - 1,
+      +gridState.numberColumn - 1,
+      -gridState.numberColumn + 1,
     ];
 
     // Tableaux pour stocker les indices des cellules à mourir et à faire vivre
@@ -99,75 +70,62 @@ function App() {
     const cellsToLive: number[] = [];
 
     // Copie de l'état actuel de la grille
-    const newGridState = { ...gridState };
+    const newAliveCells = { ...aliveCells };
 
     // Itération sur les cellules vivantes de la grille actuelle
-    gridState.cellsAlive.forEach((cellAlive: ICell) => {
+    aliveCells.cells.forEach((cellAlive: 1, indexAlive) => {
       // Vérification et ajout des cellules avec voisins
-      if (!cellsWithNeightbors[cellAlive.i]) {
-        cellsWithNeightbors[cellAlive.i] = { ...cellAlive, neighbors: 0 };
+      if (!cellsWithNeightbors[indexAlive]) {
+        cellsWithNeightbors[indexAlive] = 0;
       }
       // Itération sur les indices des voisins
       indexNeighbors.forEach((relativeIndex) => {
         // Vérification et ajout des cellules voisines
-        if (!cellsWithNeightbors[cellAlive.i + relativeIndex]) {
-          cellsWithNeightbors[cellAlive.i + relativeIndex] = {
-            i: cellAlive.i + relativeIndex,
-            alive: false,
-            neighbors: 0,
-          };
+        if (!cellsWithNeightbors[indexAlive + relativeIndex]) {
+          cellsWithNeightbors[indexAlive + relativeIndex] = 0;
         }
         // Vérification de l'état de la cellule voisine
-        if (gridState.cellsAlive[cellAlive.i + relativeIndex]) {
+        if (aliveCells.cells[indexAlive + relativeIndex]) {
           // Incrémentation du nombre de voisins pour les cellules vivantes
-          cellsWithNeightbors[cellAlive.i].neighbors += 1;
+          cellsWithNeightbors[indexAlive] += 1;
         } else {
           // Incrémentation du nombre de voisins pour les cellules mortes
-          cellsWithNeightbors[cellAlive.i + relativeIndex].neighbors += 1;
+          cellsWithNeightbors[indexAlive + relativeIndex] += 1;
           // Vérification si la cellule doit prendre vie
-          if (
-            cellsWithNeightbors[cellAlive.i + relativeIndex].neighbors === 3
-          ) {
-            cellsToLive[cellAlive.i + relativeIndex] =
-              cellAlive.i + relativeIndex;
-          } else if (
-            cellsWithNeightbors[cellAlive.i + relativeIndex].neighbors > 3
-          ) {
-            delete cellsToLive[cellAlive.i + relativeIndex];
+          if (cellsWithNeightbors[indexAlive + relativeIndex] === 3) {
+            cellsToLive[indexAlive + relativeIndex] = 1;
+          } else if (cellsWithNeightbors[indexAlive + relativeIndex] > 3) {
+            delete cellsToLive[indexAlive + relativeIndex];
           }
         }
       });
       // Vérification si la cellule doit mourir
       if (
-        cellsWithNeightbors[cellAlive.i].neighbors <= 1 ||
-        cellsWithNeightbors[cellAlive.i].neighbors > 3
+        cellsWithNeightbors[indexAlive] <= 1 ||
+        cellsWithNeightbors[indexAlive] > 3
       ) {
-        cellsTodie.push(cellAlive.i);
+        cellsTodie.push(indexAlive);
       }
     });
 
     // Itération sur les cellules à mourir
     cellsTodie.forEach((indexCell) => {
       // Mise à jour de l'état de la cellule dans la nouvelle grille
-      delete newGridState.cellsAlive[indexCell];
+      delete newAliveCells.cells[indexCell];
     });
 
     // Itération sur les cellules à faire vivre
-    cellsToLive.forEach((indexCell) => {
+    cellsToLive.forEach((_, indexCell) => {
       // Mise à jour de l'état de la cellule dans la nouvelle grille
-      newGridState.cellsAlive[indexCell] = {
-        i: indexCell,
-        alive: true,
-        neighbors: 0,
-      };
+      newAliveCells.cells[indexCell] = 1;
     });
 
-    setGridState(newGridState);
+    setAliveCells(newAliveCells);
   };
 
   useEffect(() => {
     createCellsArray();
-  }, []);
+  }, [gridState]);
 
   useEffect(() => {
     let test: number | undefined;
@@ -188,11 +146,14 @@ function App() {
         setPlay={setPlay}
         cycleSpeed={cycleSpeed}
         setCycleSpeed={setCycleSpeed}
+        setAliveCells={setAliveCells}
+        gridState={gridState}
+        setGridState={setGridState}
       />
       <Grid
         divToDisplay={divToDisplay.current}
         gridStyle={gridStyle.current}
-        cellsAlive={gridState.cellsAlive}
+        aliveCells={aliveCells}
       />
     </div>
   );

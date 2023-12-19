@@ -1,7 +1,5 @@
 interface ICell {
-  i: number;
-  alive: boolean;
-  neighbors: number;
+  cells: 1[];
 }
 
 export default ICell;

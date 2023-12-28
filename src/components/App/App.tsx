@@ -1,9 +1,10 @@
+/* eslint-disable prefer-object-spread */
 /* eslint-disable jsx-a11y/click-events-have-key-events */
 /* eslint-disable jsx-a11y/mouse-events-have-key-events */
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable jsx-a11y/control-has-associated-label */
 /* eslint-disable jsx-a11y/interactive-supports-focus */
-import { CSSProperties, useEffect, useRef, useState } from 'react';
+import { CSSProperties, useCallback, useEffect, useRef, useState } from 'react';
 import Grid from '../Grid/Grid';
 
 import './App.scss';
@@ -14,17 +15,29 @@ import DefaultCell from '../DefaultCell/DefaultCell';
 
 function App() {
   const defaultGrid = {
-    numberLine: 20,
-    numberColumn: 20,
+    numberLine: 50,
+    numberColumn: 50,
     sizeCells: 15,
   };
 
   const [aliveCells, setAliveCells] = useState<ICell>({ cells: [] });
   const [gridState, setGridState] = useState<IGrid>(defaultGrid);
   const [play, setPlay] = useState(false);
-  const [cycleSpeed, setCycleSpeed] = useState(1000);
+  const [cycleSpeed, setCycleSpeed] = useState(100);
   const divToDisplay = useRef<JSX.Element[]>();
   const gridStyle = useRef<CSSProperties>();
+  const mouseDown = useRef(false);
+  const lastIndex = useRef(0);
+  const aliveCellsRef = useRef(aliveCells);
+
+  const userAddCellAlive = (index: number, rifleMode = false) => {
+    if (!rifleMode || (rifleMode && mouseDown.current)) {
+      // ici utilisation de Object.assign plutot que spread operator pour gain de performance
+      const newAliveCells = Object.assign({}, aliveCellsRef.current);
+      newAliveCells.cells[index] = 1;
+      setAliveCells(newAliveCells);
+    }
+  };
 
   /*
    ** Cette fonction permet de créer la grille vierge au lancement de l'app
@@ -32,17 +45,16 @@ function App() {
   const createCellsArray = () => {
     divToDisplay.current = [];
     const numberOfCells = gridState.numberLine * gridState.numberColumn;
+    lastIndex.current = numberOfCells - 1;
     for (let index = 0; index < numberOfCells; index += 1) {
       divToDisplay.current.push(
         <DefaultCell
-          // key={index}
+          key={index}
           index={index}
-          aliveCells={aliveCells}
-          setAliveCells={setAliveCells}
+          userAddCellAlive={userAddCellAlive}
         />
       );
     }
-
     gridStyle.current = {
       gridTemplateColumns: `repeat(${gridState.numberColumn}, ${gridState.sizeCells}px)`,
       gridTemplateRows: `repeat(${gridState.numberColumn}, ${gridState.sizeCells}px)`,
@@ -51,6 +63,9 @@ function App() {
     setAliveCells({ cells: [] });
   };
 
+  /*
+   ** Cette fonction permet de mettre à jour la grille à chaque cycle de vie des cellules
+   */
   const updateGridState = () => {
     const cellsWithNeightbors: number[] = [];
     // Indices des voisins pour chaque cellule
@@ -70,32 +85,35 @@ function App() {
     const cellsToLive: number[] = [];
 
     // Copie de l'état actuel de la grille
-    const newAliveCells = { ...aliveCells };
+    const newAliveCells: ICell = { cells: [] };
 
     // Itération sur les cellules vivantes de la grille actuelle
-    aliveCells.cells.forEach((cellAlive: 1, indexAlive) => {
+    aliveCellsRef.current.cells.forEach((cellAlive: 1, indexAlive) => {
       // Vérification et ajout des cellules avec voisins
       if (!cellsWithNeightbors[indexAlive]) {
         cellsWithNeightbors[indexAlive] = 0;
       }
       // Itération sur les indices des voisins
       indexNeighbors.forEach((relativeIndex) => {
-        // Vérification et ajout des cellules voisines
-        if (!cellsWithNeightbors[indexAlive + relativeIndex]) {
-          cellsWithNeightbors[indexAlive + relativeIndex] = 0;
-        }
-        // Vérification de l'état de la cellule voisine
-        if (aliveCells.cells[indexAlive + relativeIndex]) {
-          // Incrémentation du nombre de voisins pour les cellules vivantes
-          cellsWithNeightbors[indexAlive] += 1;
-        } else {
-          // Incrémentation du nombre de voisins pour les cellules mortes
-          cellsWithNeightbors[indexAlive + relativeIndex] += 1;
-          // Vérification si la cellule doit prendre vie
-          if (cellsWithNeightbors[indexAlive + relativeIndex] === 3) {
-            cellsToLive[indexAlive + relativeIndex] = 1;
-          } else if (cellsWithNeightbors[indexAlive + relativeIndex] > 3) {
-            delete cellsToLive[indexAlive + relativeIndex];
+        // ici on vérifie qu'on ne sort pas de la grille
+        if (indexAlive + relativeIndex <= lastIndex.current) {
+          // Vérification et ajout des cellules voisines
+          if (!cellsWithNeightbors[indexAlive + relativeIndex]) {
+            cellsWithNeightbors[indexAlive + relativeIndex] = 0;
+          }
+          // Vérification de l'état de la cellule voisine
+          if (aliveCellsRef.current.cells[indexAlive + relativeIndex]) {
+            // Incrémentation du nombre de voisins pour les cellules vivantes
+            cellsWithNeightbors[indexAlive] += 1;
+          } else {
+            // Incrémentation du nombre de voisins pour les cellules mortes
+            cellsWithNeightbors[indexAlive + relativeIndex] += 1;
+            // Vérification si la cellule doit prendre vie
+            if (cellsWithNeightbors[indexAlive + relativeIndex] === 3) {
+              cellsToLive[indexAlive + relativeIndex] = 1;
+            } else if (cellsWithNeightbors[indexAlive + relativeIndex] > 3) {
+              delete cellsToLive[indexAlive + relativeIndex];
+            }
           }
         }
       });
@@ -105,6 +123,8 @@ function App() {
         cellsWithNeightbors[indexAlive] > 3
       ) {
         cellsTodie.push(indexAlive);
+      } else {
+        cellsToLive[indexAlive] = 1;
       }
     });
 
@@ -119,9 +139,12 @@ function App() {
       // Mise à jour de l'état de la cellule dans la nouvelle grille
       newAliveCells.cells[indexCell] = 1;
     });
-
     setAliveCells(newAliveCells);
   };
+
+  useEffect(() => {
+    aliveCellsRef.current = aliveCells;
+  }, [aliveCells]);
 
   useEffect(() => {
     createCellsArray();
@@ -139,6 +162,21 @@ function App() {
     };
   }, [play, cycleSpeed]);
 
+  useEffect(() => {
+    const handleDown = () => {
+      mouseDown.current = true;
+    };
+    const handleUp = () => {
+      mouseDown.current = false;
+    };
+    window.addEventListener('mousedown', handleDown);
+    window.addEventListener('mouseup', handleUp);
+    return () => {
+      window.removeEventListener('mousedown', handleDown);
+      window.removeEventListener('mouseup', handleUp);
+    };
+  }, []);
+
   return (
     <div className="App">
       <Configurator
@@ -154,6 +192,7 @@ function App() {
         divToDisplay={divToDisplay.current}
         gridStyle={gridStyle.current}
         aliveCells={aliveCells}
+        userAddCellAlive={userAddCellAlive}
       />
     </div>
   );

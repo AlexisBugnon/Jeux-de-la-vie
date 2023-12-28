@@ -4,7 +4,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable jsx-a11y/control-has-associated-label */
 /* eslint-disable jsx-a11y/interactive-supports-focus */
-import { CSSProperties, useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Grid from '../Grid/Grid';
 
 import './App.scss';
@@ -17,15 +17,14 @@ function App() {
   const defaultGrid = {
     numberLine: 50,
     numberColumn: 50,
-    sizeCells: 15,
   };
 
   const [aliveCells, setAliveCells] = useState<ICell>({ cells: [] });
   const [gridState, setGridState] = useState<IGrid>(defaultGrid);
+  const [sizeCells, setSizeCells] = useState(15);
   const [play, setPlay] = useState(false);
   const [cycleSpeed, setCycleSpeed] = useState(100);
   const divToDisplay = useRef<JSX.Element[]>();
-  const gridStyle = useRef<CSSProperties>();
   const mouseDown = useRef(false);
   const lastIndex = useRef(0);
   const aliveCellsRef = useRef(aliveCells);
@@ -55,11 +54,6 @@ function App() {
         />
       );
     }
-    gridStyle.current = {
-      gridTemplateColumns: `repeat(${gridState.numberColumn}, ${gridState.sizeCells}px)`,
-      gridTemplateRows: `repeat(${gridState.numberColumn}, ${gridState.sizeCells}px)`,
-    };
-
     setAliveCells({ cells: [] });
   };
 
@@ -187,12 +181,15 @@ function App() {
         setAliveCells={setAliveCells}
         gridState={gridState}
         setGridState={setGridState}
+        sizeCells={sizeCells}
+        setSizeCells={setSizeCells}
       />
       <Grid
         divToDisplay={divToDisplay.current}
-        gridStyle={gridStyle.current}
         aliveCells={aliveCells}
+        sizeCells={sizeCells}
         userAddCellAlive={userAddCellAlive}
+        gridState={gridState}
       />
     </div>
   );

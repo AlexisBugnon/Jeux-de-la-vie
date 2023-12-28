@@ -1,4 +1,3 @@
-import { useEffect, useRef } from 'react';
 import ICell from '../../@types/cell';
 import IGrid from '../../@types/grid';
 import './Configurator.scss';
@@ -11,6 +10,8 @@ function Configurator({
   setAliveCells,
   gridState,
   setGridState,
+  sizeCells,
+  setSizeCells,
 }: {
   play: boolean;
   setPlay: React.Dispatch<React.SetStateAction<boolean>>;
@@ -19,6 +20,8 @@ function Configurator({
   setAliveCells: React.Dispatch<React.SetStateAction<ICell>>;
   gridState: IGrid;
   setGridState: React.Dispatch<React.SetStateAction<IGrid>>;
+  sizeCells: number;
+  setSizeCells: React.Dispatch<React.SetStateAction<number>>;
 }) {
   const resetGrid = () => {
     setPlay(false);
@@ -70,6 +73,7 @@ function Configurator({
               const newGridState = { ...gridState };
               newGridState.numberColumn = parseInt(event.target.value, 10);
               newGridState.numberLine = parseInt(event.target.value, 10);
+              resetGrid();
               setGridState(newGridState);
             }}
           />
@@ -85,12 +89,11 @@ function Configurator({
             step={1}
             defaultValue={15}
             onChange={(event) => {
-              const newGridState = { ...gridState };
-              newGridState.sizeCells = parseInt(event.target.value, 10);
-              setGridState(newGridState);
+              const newSizeCells = parseInt(event.target.value, 10);
+              setSizeCells(newSizeCells);
             }}
           />
-          <p>{`${gridState.sizeCells} pixels`}</p>
+          <p>{`${sizeCells} pixels`}</p>
         </div>
       </div>
     </div>

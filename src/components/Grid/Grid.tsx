@@ -4,20 +4,23 @@
 /* eslint-disable jsx-a11y/interactive-supports-focus */
 /* eslint-disable jsx-a11y/control-has-associated-label */
 /* eslint-disable react/no-array-index-key */
-import { CSSProperties, useEffect, useRef } from 'react';
+import { useRef } from 'react';
 import ICell from '../../@types/cell';
 import './Grid.scss';
+import IGrid from '../../@types/grid';
 
 function Grid({
   divToDisplay,
-  gridStyle,
   aliveCells,
   userAddCellAlive,
+  sizeCells,
+  gridState,
 }: {
   divToDisplay: JSX.Element[] | undefined;
-  gridStyle: CSSProperties | undefined;
   aliveCells: ICell;
   userAddCellAlive: (index: number, rifleMode?: boolean) => void;
+  sizeCells: number;
+  gridState: IGrid;
 }) {
   const oldAlive = useRef<1[]>([]);
   if (divToDisplay) {
@@ -48,10 +51,15 @@ function Grid({
     }
     oldAlive.current = aliveCells.cells.slice();
   }
-
   return (
     <div className="container">
-      <div className="grid" style={gridStyle}>
+      <div
+        className="grid"
+        style={{
+          gridTemplateColumns: `repeat(${gridState.numberColumn}, ${sizeCells}px)`,
+          gridTemplateRows: `repeat(${gridState.numberColumn}, ${sizeCells}px)`,
+        }}
+      >
         {divToDisplay}
       </div>
     </div>
